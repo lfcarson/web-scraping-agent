@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Scraping Agent</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <span>Scraping Agent</span>
+      </div>
+      <button class="btn-new-chat" onclick="newChat()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        New conversation
+      </button>
+      <div class="sidebar-section">
+        <p class="sidebar-label">Quick start</p>
+        <button class="example-btn" onclick="useExample('Scrape the top 10 articles from https://news.ycombinator.com — extract title, points, and comment count')">
+          Hacker News top posts
+        </button>
+        <button class="example-btn" onclick="useExample('Go to https://books.toscrape.com and extract: book title, price, star rating, and availability for all books on the first page')">
+          Books catalog
+        </button>
+        <button class="example-btn" onclick="useExample('Extract job listings from https://realpython.github.io/fake-jobs/ — get: job title, company, location, and date posted')">
+          Job listings
+        </button>
+      </div>
+      <div class="sidebar-footer">
+        <div class="model-badge" id="model-badge">OpenRouter · claude-3.5-sonnet</div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="chat-container">
+        <!-- Messages -->
+        <div class="messages" id="messages">
+          <div class="welcome">
+            <div class="welcome-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+            </div>
+            <h1>Web Scraping Agent</h1>
+            <p>Tell me a website URL and what data you'd like to extract. I'll fetch and structure it for you — then you can export it to Excel.</p>
+            <div class="welcome-chips">
+              <div class="chip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Bot-detection bypass
+              </div>
+              <div class="chip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                Excel export
+              </div>
+              <div class="chip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                AI-powered extraction
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data panel (hidden until data arrives) -->
+        <div class="data-panel" id="data-panel" style="display:none">
+          <div class="data-panel-header">
+            <span class="data-panel-title" id="data-title">Extracted Data</span>
+            <div class="data-panel-actions">
+              <span class="data-count" id="data-count"></span>
+              <button class="btn-export" id="export-btn" onclick="exportToExcel()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Export to Excel
+              </button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table" id="data-table"></table>
+          </div>
+        </div>
+
+        <!-- Input -->
+        <div class="input-area">
+          <div class="input-wrapper">
+            <textarea
+              id="input"
+              class="chat-input"
+              placeholder="Enter a URL and describe what you'd like to extract..."
+              rows="1"
+              onkeydown="handleKey(event)"
+              oninput="autoResize(this)"
+            ></textarea>
+            <button class="send-btn" id="send-btn" onclick="sendMessage()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+          <p class="input-hint">Shift+Enter for new line · Enter to send</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
