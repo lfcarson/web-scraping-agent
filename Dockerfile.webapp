@@ -1,0 +1,46 @@
+# ── Stage 1: build ────────────────────────────────────────────────────────────
+FROM python:3.12-slim AS builder
+
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install scrapling from local source (includes curl_cffi for stealthy fetching)
+COPY pyproject.toml setup.cfg MANIFEST.in ./
+COPY scrapling/ ./scrapling/
+RUN pip install --no-cache-dir --prefix=/install -e ".[fetchers]"
+
+# Install webapp dependencies
+COPY webapp/requirements.txt ./webapp/requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r webapp/requirements.txt
+
+# ── Stage 2: runtime ──────────────────────────────────────────────────────────
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Runtime system deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy installed packages from builder
+COPY --from=builder /install /usr/local
+
+# Copy app source
+COPY scrapling/ ./scrapling/
+COPY pyproject.toml setup.cfg MANIFEST.in ./
+COPY webapp/ ./webapp/
+
+# Re-install scrapling in editable mode so pkg metadata is present
+RUN pip install --no-cache-dir -e ".[fetchers]" --quiet
+
+WORKDIR /app/webapp
+
+ENV PORT=8080
+EXPOSE 8080
+
+# Cloud Run sets PORT env var automatically
+CMD exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080} --workers 1 --loop asyncio
