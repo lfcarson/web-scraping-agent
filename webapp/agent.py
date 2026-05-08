@@ -65,12 +65,12 @@ TOOLS = [
 
 
 class ScrapingAgent:
-    def __init__(self):
+    def __init__(self, model: str | None = None):
         self.client = AsyncOpenAI(
             base_url="https://openrouter.ai/api/v1",
             api_key=os.environ["OPENROUTER_API_KEY"],
         )
-        self.model = os.getenv("OPENROUTER_MODEL", "anthropic/claude-3.5-sonnet")
+        self.model = model or os.getenv("OPENROUTER_MODEL", "anthropic/claude-3.5-sonnet")
 
     async def run(self, user_messages: list[dict]) -> AsyncGenerator[dict, None]:
         from scraper import ScraperTool

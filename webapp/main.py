@@ -1,4 +1,3 @@
-import io
 import json
 import os
 
@@ -11,6 +10,16 @@ from fastapi.staticfiles import StaticFiles
 load_dotenv()
 
 app = FastAPI(title="Web Scraping Agent")
+
+AVAILABLE_MODELS = [
+    {"id": "anthropic/claude-3.5-sonnet",        "label": "Claude 3.5 Sonnet",   "provider": "Anthropic"},
+    {"id": "anthropic/claude-3.5-haiku",          "label": "Claude 3.5 Haiku",    "provider": "Anthropic"},
+    {"id": "anthropic/claude-3-opus",             "label": "Claude 3 Opus",       "provider": "Anthropic"},
+    {"id": "openai/gpt-4o",                       "label": "GPT-4o",              "provider": "OpenAI"},
+    {"id": "openai/gpt-4o-mini",                  "label": "GPT-4o Mini",         "provider": "OpenAI"},
+    {"id": "google/gemini-flash-1.5",             "label": "Gemini Flash 1.5",    "provider": "Google"},
+    {"id": "meta-llama/llama-3.1-70b-instruct",   "label": "Llama 3.1 70B",       "provider": "Meta"},
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -31,8 +40,10 @@ async def chat(request: Request):
     body = await request.json()
     messages = body.get("messages", [])
 
+    model = body.get("model") or None
+
     from agent import ScrapingAgent
-    agent = ScrapingAgent()
+    agent = ScrapingAgent(model=model)
 
     async def generate():
         try:
@@ -67,6 +78,12 @@ async def export_data(request: Request):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@app.get("/api/models")
+async def get_models():
+    default = os.getenv("OPENROUTER_MODEL", "anthropic/claude-3.5-sonnet")
+    return {"default": default, "models": AVAILABLE_MODELS}
 
 
 @app.get("/health")

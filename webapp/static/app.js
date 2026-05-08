@@ -4,6 +4,43 @@ let currentData = null;   // last scraped rows
 let currentColumns = null;
 let isRunning = false;
 
+// ── Model selector ────────────────────────────────────────────────────────────
+function getSelectedModel() {
+  return $("model-select")?.value || "anthropic/claude-3.5-sonnet";
+}
+
+async function loadModels() {
+  try {
+    const resp = await fetch("/api/models");
+    const { default: defaultModel, models } = await resp.json();
+
+    const select = $("model-select");
+
+    // Group by provider
+    const byProvider = {};
+    for (const m of models) {
+      (byProvider[m.provider] ??= []).push(m);
+    }
+
+    for (const [provider, list] of Object.entries(byProvider)) {
+      const group = document.createElement("optgroup");
+      group.label = provider;
+      for (const m of list) {
+        const opt = document.createElement("option");
+        opt.value = m.id;
+        opt.textContent = m.label;
+        if (m.id === defaultModel) opt.selected = true;
+        group.appendChild(opt);
+      }
+      select.appendChild(group);
+    }
+  } catch {
+    // non-fatal — selector stays empty, backend falls back to env var
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadModels);
+
 // ── SSE parser ────────────────────────────────────────────────────────────────
 class SSEParser {
   constructor() { this.buf = ""; }
@@ -188,7 +225,7 @@ async function sendMessage() {
     const resp = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, model: getSelectedModel() }),
     });
 
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
